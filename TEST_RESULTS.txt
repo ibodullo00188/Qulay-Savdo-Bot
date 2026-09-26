@@ -1,0 +1,11 @@
+Qulay Savdo Bot 4.3 verification
+python -m unittest discover -s tests -q
+Ran 115 tests in 8.779s
+OK
+
+12 new referral-admission tests, plus 103 prior tests.
+Verified: default disabled/unconfigured; admin-only settings; configurable count;
+once unlock survives departure and count changes; unique members/bot/self filtering;
+per-post atomic spending; concurrent double-spend protection; paid/disabled bypass;
+mode switching; admin import permission; blocked draft resumes without duplication.
+Telegram transport mocked; live Render/Telegram deployment not performed.

@@ -1,0 +1,29 @@
+# Upload this project's contents to the repository root, then New > Blueprint.
+# Free disk is ephemeral. Export backups from the admin panel before restarting.
+services:
+  - type: web
+    name: qulay-savdo-bot
+    runtime: python
+    plan: free
+    region: frankfurt
+    autoDeployTrigger: "off"
+    buildCommand: pip install -r requirements.txt
+    startCommand: python main.py
+    healthCheckPath: /health
+    envVars:
+      - key: RUN_MODE
+        value: webhook
+      - key: PYTHON_VERSION
+        value: 3.12.4
+      - key: PYTHONUNBUFFERED
+        value: "1"
+      - key: BOT_TOKEN
+        sync: false
+      - key: ADMIN_IDS
+        sync: false
+      - key: CHANNEL_ID
+        sync: false
+      - key: DATABASE_PATH
+        value: /tmp/qulay-savdo-bot/bot.db
+      - key: WEBHOOK_SECRET
+        generateValue: true
