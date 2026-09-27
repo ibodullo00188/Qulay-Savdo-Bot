@@ -125,6 +125,24 @@ class RegressionTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(await self.state(uid).get_state(),Edit.preview.state)
         await self.callback(f"xp:submit:{data['editor_kind']}:{data['editor_id']}:{data['editor_version']}",uid=uid)
 
+    async def test_compact_main_menu_and_additional_navigation(self):
+        labels = lambda markup: [b.text for row in markup.keyboard for b in row]
+        self.assertEqual(labels(kb.main_menu_rb()), [kb.BTN_AD, kb.BTN_ORDER, kb.BTN_MORE])
+        self.assertEqual(labels(kb.main_menu_rb(True)), [kb.BTN_AD, kb.BTN_ORDER, kb.BTN_MORE, kb.BTN_ADMIN])
+        extra = labels(kb.additional_menu_rb())
+        self.assertEqual(len(extra), 13)
+        self.assertIn(kb.BTN_MY_ADS, extra)
+        self.assertIn(kb.BTN_RULES, extra)
+        self.assertNotIn(kb.BTN_ADMIN, extra)
+        await self.message(kb.BTN_ORDER)
+        await self.message(kb.BTN_MORE)
+        self.assertIsNone(await self.state().get_state())
+        self.assertEqual(labels(self.session.calls[-1].reply_markup), extra)
+        await self.message('👤 Profilim')
+        self.assertIn('@user1', self.session.calls[-1].text)
+        await self.message(kb.BTN_HOME)
+        self.assertEqual(labels(self.session.calls[-1].reply_markup), labels(kb.main_menu_rb()))
+
     async def reply_actions(self, uid=1):
         from handlers.admin.reply_navigation import navigation_context
         return (await navigation_context(self.state(uid)).get_data()).get('actions', {})

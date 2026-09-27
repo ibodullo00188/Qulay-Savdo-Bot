@@ -92,6 +92,15 @@ async def open_section(message: Message, state: FSMContext):
         await handler(request)
 
 
+@router.message(F.text == kb.BTN_MORE)
+async def additional_menu(message: Message, state: FSMContext):
+    from services import backup as backup_service
+    backup_service.discard_user(message.from_user.id)
+    await abandon_pending_flow(state)
+    await navigation_context(state).set_data({"active": True, "admin_mode": False, "actions": {}})
+    await message.answer('➕ Qo‘shimcha imkoniyatlar', reply_markup=kb.additional_menu_rb())
+
+
 @router.message(SubmenuButton())
 async def submenu(message: Message, state: FSMContext, dispatcher, admin_action: str):
     if message.chat.type != 'private':

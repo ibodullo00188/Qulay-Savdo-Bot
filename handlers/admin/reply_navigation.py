@@ -33,7 +33,8 @@ class AdminReplyScope(BaseMiddleware):
         saved.setdefault('active', True)
         if isinstance(event, Message):
             text = event.text or ''
-            user_buttons = {b.text for row in kb.main_menu_rb().keyboard for b in row}
+            user_buttons = {b.text for menu in (kb.main_menu_rb(), kb.additional_menu_rb())
+                            for row in menu.keyboard for b in row}
             command = text.split()[0].split('@')[0] if text.startswith('/') else ''
             if (text in user_buttons and text not in saved.get('actions', {})) or command in ('/start', '/menu'):
                 saved = {'active': True, 'admin_mode': False, 'actions': {}}

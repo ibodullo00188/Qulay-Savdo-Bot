@@ -34,6 +34,7 @@ BTN_MY_ADS = "📋 Mening e'lonlarim"
 BTN_MY_ORDERS = "📋 Mening zakazlarim"
 BTN_REFERRAL = "🎁 E’lon uchun bonus olish"
 BTN_RULES = "ℹ️ Qoidalar"
+BTN_MORE = "➕ Qo‘shimcha"
 BTN_ADMIN = "🛠 Admin panel"
 BTN_CANCEL = "❌ Bekor qilish"
 BTN_HOME = "🏠 Bosh menyu"
@@ -42,8 +43,14 @@ BTN_MY_APPLICATIONS = "📨 Yuborgan takliflarim"
 
 
 def main_menu_rb(is_admin: bool = False):
+    rows = [[BTN_AD, BTN_ORDER], [BTN_MORE]]
+    if is_admin:
+        rows.append([BTN_ADMIN])
+    return multi_reply(rows)
+
+
+def additional_menu_rb():
     rows = [
-        [BTN_AD, BTN_ORDER],
         [BTN_MY_ADS, BTN_MY_ORDERS],
         ["🔎 Ochiq zakazlar", BTN_MY_APPLICATIONS],
         ["📝 Qoralamalar", "👤 Profilim"],
@@ -51,8 +58,7 @@ def main_menu_rb(is_admin: bool = False):
         [BTN_FIND_ORDER, "🆘 Yordam olish"],
         [BTN_REFERRAL, BTN_RULES],
     ]
-    if is_admin:
-        rows.append([BTN_ADMIN])
+    rows.append([BTN_HOME])
     return multi_reply(rows)
 
 
