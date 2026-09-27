@@ -85,6 +85,7 @@ def build_dispatcher() -> Dispatcher:
 
 
 _delivery_task = None
+_backup_task = None
 
 
 async def on_startup(bot: Bot):
@@ -148,20 +149,24 @@ def build_bot() -> Bot:
 #  POLLING — lokal ishlab chiqish uchun (RUN_MODE=polling, standart)
 # ============================================================
 async def start_delivery(bot):
-    global _delivery_task
+    global _delivery_task, _backup_task
+    from services.auto_backup import worker as backup_worker
     from services.order_channel import delivery_worker
     _delivery_task = asyncio.create_task(delivery_worker(bot))
+    _backup_task = asyncio.create_task(backup_worker(bot))
 
 
 async def stop_delivery():
-    global _delivery_task
-    if _delivery_task:
-        _delivery_task.cancel()
+    global _delivery_task, _backup_task
+    tasks = [task for task in (_delivery_task, _backup_task) if task is not None]
+    for task in tasks:
+        task.cancel()
+    for task in tasks:
         try:
-            await _delivery_task
+            await task
         except asyncio.CancelledError:
             pass
-        _delivery_task = None
+    _delivery_task = _backup_task = None
 
 
 async def run_polling():

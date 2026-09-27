@@ -142,3 +142,23 @@ Admin do‘stlar sonini 1–10000 oralig‘ida, talabni **bir marta** yoki
 **har bir yangi post uchun** deb tanlaydi va rejimni alohida yoqadi.
 Bu shart pullik tizim o‘chirilganda e’lon hamda zakazlar uchun ishlaydi.
 Talab yetmasa qoralama saqlanadi, shaxsiy kanal havolasi va qayta tekshirish tugmasi chiqadi.
+
+
+### Avtomatik backup
+
+Bot har kuni Toshkent vaqti bilan **09:00 va 21:00** da bazaning yangi ZIP
+nusxasini faqat joriy adminlarning shaxsiy chatiga yuboradi. Admin botga avval
+`/start` yuborgan bo‘lishi kerak. Kanalga yoki oddiy foydalanuvchilarga yuborilmaydi.
+Fayl mavjud **Admin panel → Backupni tiklash** orqali tiklanadi.
+Qo‘lda backup yaratish ham ishlashda davom etadi.
+
+Bot birinchi ishga tushganda yoki o‘chiq/uyquda qolib vaqtni o‘tkazib yuborganda,
+ishga qaytgach eng so‘nggi o‘tgan vaqt uchun yangi nusxa yuboriladi. Bu eski
+vaqtdagi ma’lumotlarni qaytara olmaydi. Jadval har 30 soniyada tekshiriladi.
+Muvaffaqiyatli yuborish bazada qayd etiladi; oddiy restart uni qayta yubormaydi.
+Yuborilmagan adminlarga 5 daqiqadan keyin qayta uriniladi. Tiklash yoki bazaning
+butunlay yo‘qolishi yuborish qaydlarini ham qaytarishi/o‘chirishi mumkin.
+Bot ishlamayotgan vaqtda yangi backup yaratib bo‘lmaydi.
+
+**Tiklash faqat qo‘lda:** admin oxirgi backup faylini “Backupni tiklash”
+bo‘limiga forward qiladi va tasdiqlaydi. Avtomatik tiklash yo‘q.
