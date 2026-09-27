@@ -78,11 +78,11 @@ class AdminReplyTransport:
                 else:
                     return await make_request(bot, method)
                 actions[label] = action
-                labels.append(KeyboardButton(text=label))
+                labels.append(kb.reply_button(label))
             rows.append(labels)
-        navigation = [KeyboardButton(text=kb.BTN_HOME)]
+        navigation = [kb.reply_button(kb.BTN_HOME)]
         if saved.get('admin_mode') and await repo.is_admin(scope[0]):
-            navigation.insert(0, KeyboardButton(text=kb.BTN_ADMIN))
+            navigation.insert(0, kb.reply_button(kb.BTN_ADMIN))
         rows.append(navigation)
         reply = ReplyKeyboardMarkup(keyboard=rows, resize_keyboard=True, is_persistent=True)
         if method.__api_method__.startswith('editMessage'):

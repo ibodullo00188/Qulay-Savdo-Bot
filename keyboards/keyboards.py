@@ -6,15 +6,33 @@ from aiogram.types import (
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 
+def button_style(text):
+    """Restrained accents: primary actions, positive confirmation and danger."""
+    if text == BTN_AD:
+        return 'success'
+    if text in (BTN_ORDER, BTN_ADMIN):
+        return 'primary'
+    if text.startswith(('🗑', '❌', '🚫', '➖ Admin')):
+        return 'danger'
+    if text.startswith(('✅ Tasdiq', '✅ Davom', '✅ Yubor', '✅ Saqla')):
+        return 'success'
+    return None
+
+
+def reply_button(text):
+    style = button_style(text)
+    return KeyboardButton(text=text, **({'style': style} if style else {}))
+
+
 def reply_row(*labels):
     return ReplyKeyboardMarkup(
-        keyboard=[[KeyboardButton(text=l) for l in labels]],
+        keyboard=[[reply_button(l) for l in labels]],
         resize_keyboard=True)
 
 
 def multi_reply(rows):
     return ReplyKeyboardMarkup(
-        keyboard=[[KeyboardButton(text=l) for l in r] for r in rows],
+        keyboard=[[reply_button(l) for l in r] for r in rows],
         resize_keyboard=True)
 
 
@@ -23,7 +41,8 @@ def ipb(items, widths=(1,)):
     b = InlineKeyboardBuilder()
     for row in items:
         cb, text = row
-        b.button(text=text, callback_data=cb)
+        style = button_style(text)
+        b.button(text=text, callback_data=cb, **({"style": style} if style else {}))
     return b.adjust(*widths).as_markup()
 
 
@@ -254,7 +273,7 @@ def admin_sections_kb():
     rows = [labels[i:i + 2] for i in range(0, len(labels), 2)]
     rows.append([BTN_HOME])
     return ReplyKeyboardMarkup(
-        keyboard=[[KeyboardButton(text=label) for label in row] for row in rows],
+        keyboard=[[reply_button(label) for label in row] for row in rows],
         resize_keyboard=True, is_persistent=True)
 
 
