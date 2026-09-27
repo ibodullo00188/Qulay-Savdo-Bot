@@ -48,6 +48,11 @@ class OfflineSession(BaseSession):
     async def make_request(self, bot, method, timeout=None):
         self.calls.append(method)
         name = type(method).__name__
+        if name == 'GetMyName':
+            from aiogram.types import BotName
+            return BotName(name=config.BOT_DISPLAY_NAME)
+        if name == 'GetMyCommands':
+            return []
         if name == 'GetMe':
             return User(id=bot.id,is_bot=True,first_name='Test',username='offline_test_bot')
         if self.fail_channel and getattr(method,'chat_id',None)==config.CHANNEL_ID:

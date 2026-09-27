@@ -88,6 +88,30 @@ _delivery_task = None
 _backup_task = None
 
 
+async def configure_profile(bot: Bot):
+    """Cosmetic Telegram settings must never prevent the bot from starting."""
+    from aiogram.exceptions import TelegramAPIError
+    commands = [
+        BotCommand(command="start", description="🏠 Bosh menyu"),
+        BotCommand(command="menu", description="🏠 Bosh menyu"),
+        BotCommand(command="cancel", description="❌ Bekor qilish"),
+        BotCommand(command="admin", description="🛠 Admin panel"),
+    ]
+    try:
+        current = await bot.get_my_name(request_timeout=10)
+        if current.name != config.BOT_DISPLAY_NAME:
+            await bot.set_my_name(name=config.BOT_DISPLAY_NAME, request_timeout=10)
+    except (TelegramAPIError, TimeoutError) as exc:
+        logger.warning("Bot name update skipped (%s); startup continues", type(exc).__name__)
+    try:
+        scope = BotCommandScopeDefault()
+        current = await bot.get_my_commands(scope=scope, request_timeout=10)
+        if current != commands:
+            await bot.set_my_commands(commands, scope=scope, request_timeout=10)
+    except (TelegramAPIError, TimeoutError) as exc:
+        logger.warning("Bot commands update skipped (%s); startup continues", type(exc).__name__)
+
+
 async def on_startup(bot: Bot):
     await init_db()
     if not config.BOT_USERNAME:
@@ -100,13 +124,7 @@ async def on_startup(bot: Bot):
     # Bot to'xtab turgan vaqtda tashlab ketilgan (hech qachon to'lanmagan/
     # chek yubormagan) e'lon-zakazlarni ishga tushishda tozalab qo'yamiz.
     await repo.expire_stale_pending()
-    await bot.set_my_name(name=config.BOT_DISPLAY_NAME)
-    await bot.set_my_commands([
-        BotCommand(command="start", description="🏠 Bosh menyu"),
-        BotCommand(command="menu", description="🏠 Bosh menyu"),
-        BotCommand(command="cancel", description="❌ Bekor qilish"),
-        BotCommand(command="admin", description="🛠 Admin panel"),
-    ], scope=BotCommandScopeDefault())
+    await configure_profile(bot)
 
     if config.RUN_MODE == "webhook":
         if not config.WEBHOOK_URL:
