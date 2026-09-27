@@ -51,7 +51,7 @@ async def msg_broadcast_content(message: Message, state: FSMContext):
 async def bcast_cancel(cq: CallbackQuery, state: FSMContext):
     await state.clear()
     await cq.answer("Bekor qilindi")
-    await cq.message.edit_text("❌ Reklama yuborish bekor qilindi.",
+    await cq.message.answer("❌ Reklama yuborish bekor qilindi.",
                                 reply_markup=kb.admin_sections_kb())
 
 

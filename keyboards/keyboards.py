@@ -219,8 +219,7 @@ def broadcast_kb():
 
 
 # ================= Admin panel bosh menyusi =================
-def admin_sections_kb():
-    return ipb([
+ADMIN_SECTIONS = [
         ("ig:admin", "🤝 Taklif orqali joylashtirish"),
         ("backup:create", "📦 Backup yaratish"),
         ("backup:restore", "♻️ Backupni tiklash"),
@@ -240,7 +239,18 @@ def admin_sections_kb():
         ("admin:sign", "✍️ Kanal imzosi"),
         ("admin:broadcast", "📣 Reklama yuborish"),
         ("admin:admins", "👤 Adminlar"),
-    ], widths=(2, 2, 2, 2, 1, 1))
+    ]
+ADMIN_SECTION_ACTIONS = {label: action for action, label in ADMIN_SECTIONS}
+
+
+def admin_sections_kb():
+    labels = list(ADMIN_SECTION_ACTIONS)
+    rows = [labels[i:i + 2] for i in range(0, len(labels), 2)]
+    rows.append([BTN_HOME])
+    return ReplyKeyboardMarkup(
+        keyboard=[[KeyboardButton(text=label) for label in row] for row in rows],
+        resize_keyboard=True, is_persistent=True)
+
 
 
 def admins_menu_kb():

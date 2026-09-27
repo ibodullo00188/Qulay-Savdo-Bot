@@ -48,6 +48,8 @@ def build_dispatcher() -> Dispatcher:
     from handlers.user import start, menu, ads, orders, mine, referral, complaint, applications
     from handlers.admin import panel, broadcast, receipts, sign, backup
 
+    from handlers.admin import navigation
+    dp.include_router(navigation.router)
     dp.include_router(backup.router)
     from handlers import invite_gate
     dp.include_router(invite_gate.router)

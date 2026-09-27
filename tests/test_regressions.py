@@ -120,6 +120,31 @@ class RegressionTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(await self.state(uid).get_state(),Edit.preview.state)
         await self.callback(f"xp:submit:{data['editor_kind']}:{data['editor_id']}:{data['editor_version']}",uid=uid)
 
+    async def test_admin_reply_sections_and_permissions(self):
+        from aiogram.types import ReplyKeyboardMarkup
+        await self.message(kb.BTN_ADMIN, uid=900)
+        markup = self.session.calls[-1].reply_markup
+        self.assertIsInstance(markup, ReplyKeyboardMarkup)
+        self.assertTrue(markup.is_persistent)
+        self.assertIn(kb.BTN_HOME, [b.text for row in markup.keyboard for b in row])
+        for action, label in kb.ADMIN_SECTIONS:
+            with self.subTest(action=action):
+                self.session.calls.clear()
+                await self.message(label, uid=900)
+                self.assertTrue(self.session.calls)
+                self.assertFalse(any(type(c).__name__.startswith('EditMessage') for c in self.session.calls))
+                self.assertFalse(any(type(c).__name__ == 'AnswerCallbackQuery' for c in self.session.calls))
+        await self.message(kb.BTN_ADMIN, uid=900)
+        self.assertIsNone(await self.state(900).get_state())
+        await self.message('♻️ Backupni tiklash', uid=900)
+        await self.message(kb.BTN_HOME, uid=900)
+        self.assertIsNone(await self.state(900).get_state())
+        for _, label in kb.ADMIN_SECTIONS:
+            self.session.calls.clear()
+            await self.message(label, uid=1)
+            self.assertEqual(len(self.session.calls), 1)
+            self.assertIn('huquq', self.session.calls[0].text)
+
     async def test_low_balance_ad_photo_becomes_receipt(self):
         await self.message(kb.BTN_AD)
         await self.message(photo=True,caption='Product',unique='product')
