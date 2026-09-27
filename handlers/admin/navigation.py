@@ -8,6 +8,8 @@ import database.repo as repo
 import keyboards.keyboards as kb
 from services.flow import abandon_pending_flow
 
+from handlers.admin.reply_navigation import navigation_context, SubmenuButton
+
 router = Router(name='admin_navigation')
 
 
@@ -18,6 +20,13 @@ class SectionMessage:
 
     def __getattr__(self, name):
         return getattr(self._message, name)
+
+    async def edit_caption(self, caption=None, **kwargs):
+        return await self._message.answer(caption or "✅ Tayyor", **kwargs)
+
+    async def edit_reply_markup(self, reply_markup=None, **kwargs):
+        if reply_markup is not None:
+            return await self._message.answer("Bo‘limni tanlang:", reply_markup=reply_markup)
 
     async def edit_text(self, text, **kwargs):
         return await self._message.answer(text, **kwargs)
@@ -47,6 +56,7 @@ async def open_section(message: Message, state: FSMContext):
     from handlers import experience, upgrades, invite_gate
     from services import backup as backup_service
 
+    await navigation_context(state).set_data({"active": True, "admin_mode": True, "actions": {}})
     backup_service.discard_user(message.from_user.id)
     await abandon_pending_flow(state)
     action = kb.ADMIN_SECTION_ACTIONS.get(message.text)
@@ -82,9 +92,30 @@ async def open_section(message: Message, state: FSMContext):
         await handler(request)
 
 
+@router.message(SubmenuButton())
+async def submenu(message: Message, state: FSMContext, dispatcher, admin_action: str):
+    if message.chat.type != 'private':
+        return
+    saved = await navigation_context(state).get_data()
+    if saved.get('admin_mode') and not await repo.is_admin(message.from_user.id):
+        return
+    if admin_action.startswith(('navigation:url:', 'navigation:copy:')):
+        await message.answer(admin_action.split(':', 2)[2])
+        return
+    if admin_action == 'cancel' and saved.get('admin_mode'):
+        await open_section(message.model_copy(update={'text': kb.BTN_ADMIN}), state)
+        return
+    request = SectionRequest(message, admin_action)
+    await dispatcher.propagate_event(
+        'callback_query', request, bot=message.bot, state=state,
+        dispatcher=dispatcher, event_from_user=message.from_user,
+        raw_state=await state.get_state())
+
+
 @router.message(F.text == kb.BTN_HOME)
 async def home(message: Message, state: FSMContext):
     from handlers.user.start import on_menu
     from services import backup as backup_service
     backup_service.discard_user(message.from_user.id)
+    await navigation_context(state).set_data({"active": True, "admin_mode": False, "actions": {}})
     await on_menu(message, state)

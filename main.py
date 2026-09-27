@@ -42,6 +42,9 @@ def build_dispatcher() -> Dispatcher:
     dp.update.outer_middleware(MaintenanceMiddleware())
     dp.update.outer_middleware(dp.fsm)
     dp.message.filter(F.chat.type == "private")
+    from handlers.admin.reply_navigation import AdminReplyScope
+    dp.message.outer_middleware(AdminReplyScope())
+    dp.callback_query.outer_middleware(AdminReplyScope())
     dp.message.middleware(BlockedUserMiddleware())
     dp.callback_query.middleware(BlockedUserMiddleware())
 

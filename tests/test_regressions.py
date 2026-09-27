@@ -120,6 +120,66 @@ class RegressionTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(await self.state(uid).get_state(),Edit.preview.state)
         await self.callback(f"xp:submit:{data['editor_kind']}:{data['editor_id']}:{data['editor_version']}",uid=uid)
 
+    async def reply_actions(self, uid=1):
+        from handlers.admin.reply_navigation import navigation_context
+        return (await navigation_context(self.state(uid)).get_data()).get('actions', {})
+
+    async def test_user_nested_reply_navigation(self):
+        from aiogram.types import ReplyKeyboardMarkup
+        from handlers.admin.reply_navigation import navigation_context
+        await self.message(kb.BTN_ORDER)
+        saved = await navigation_context(self.state()).get_data()
+        label = next(k for k, v in saved['actions'].items() if v == 'xp:category:web')
+        self.assertIsInstance(self.session.calls[-1].reply_markup, ReplyKeyboardMarkup)
+        self.assertNotIn(kb.BTN_ADMIN, [b.text for row in self.session.calls[-1].reply_markup.keyboard for b in row])
+        await self.message(label)
+        self.assertEqual((await self.state().get_data())['editor_category'], 'web')
+        await self.message('Build my website')
+        saved = await navigation_context(self.state()).get_data()
+        label = next(k for k, v in saved['actions'].items() if v.startswith('xp:submit:'))
+        await self.message(label)
+        self.assertEqual(await self.state().get_state(), OrderStates.awaiting_receipt.state)
+        await self.message('❌ Bekor qilish')
+        self.assertIsNone(await self.state().get_state())
+
+    async def test_admin_reply_receipt_rejection(self):
+        from aiogram.types import ReplyKeyboardMarkup
+        ad = await self.new_ad()
+        pid = await pay(1, 'ad', ad, 50, 'receipt', 'reply-receipt')
+        await self.message(kb.BTN_ADMIN, uid=900)
+        await self.message('💳 Cheklar', uid=900)
+        self.assertIsInstance(self.session.calls[-1].reply_markup, ReplyKeyboardMarkup)
+        await self.message('❌ Rad etish', uid=900)
+        await self.message('Chek mos emas', uid=900)
+        self.assertEqual((await repo.get_payment(pid))['status'], 'REJECTED')
+
+    async def test_admin_nested_reply_navigation(self):
+        from aiogram.types import ReplyKeyboardMarkup
+        from handlers.admin.reply_navigation import navigation_context
+        await self.message(kb.BTN_ADMIN, uid=900)
+        await self.message('⚙️ Sozlamalar', uid=900)
+        self.assertIsInstance(self.session.calls[-1].reply_markup, ReplyKeyboardMarkup)
+        saved = await navigation_context(self.state(900)).get_data()
+        label = next(label for label, action in saved['actions'].items() if action == 'admin:setkey:ad_price')
+        await self.message(label, uid=900)
+        self.assertEqual(await self.state(900).get_state(), SettingsStates.awaiting_value.state)
+        await self.message('45000', uid=900)
+        self.assertEqual(await repo.get_setting('ad_price'), '45000')
+        await self.message('⚙️ Sozlamalar', uid=900)
+        await self.message('⬅️ Orqaga', uid=900)
+        self.assertIsInstance(self.session.calls[-1].reply_markup, ReplyKeyboardMarkup)
+        await self.message('👤 Adminlar', uid=900)
+        await self.message("➕ Admin qo'shish", uid=900)
+        self.assertIsNotNone(await self.state(900).get_state())
+        await self.message('❌ Bekor qilish', uid=900)
+        self.assertIsNone(await self.state(900).get_state())
+        await self.message(kb.BTN_HOME, uid=900)
+        self.assertFalse((await navigation_context(self.state(900)).get_data()).get('admin_mode'))
+        await self.message(kb.BTN_ADMIN, uid=900)
+        await self.message('/start', uid=900)
+        self.assertFalse((await navigation_context(self.state(900)).get_data()).get('admin_mode'))
+
+
     async def test_admin_reply_sections_and_permissions(self):
         from aiogram.types import ReplyKeyboardMarkup
         await self.message(kb.BTN_ADMIN, uid=900)
@@ -251,7 +311,7 @@ class RegressionTests(unittest.IsolatedAsyncioTestCase):
         ad=await self.new_ad()
         await self.callback('ad:back_list')
         markup=self.session.calls[-1].reply_markup
-        self.assertTrue(any(b.callback_data==f'ad:view:{ad}' for row in markup.inline_keyboard for b in row))
+        self.assertIn(f'ad:view:{ad}', (await self.reply_actions()).values())
         self.assertIsNone(await repo.get_user(self.bot.id))
 
     async def test_admin_pending_next(self):
@@ -325,7 +385,7 @@ class RegressionTests(unittest.IsolatedAsyncioTestCase):
         await self.message('/start order_'+item['public_code'],uid=3)
         self.assertIsNotNone(await repo.get_user(3))
         markup=self.session.calls[-1].reply_markup
-        self.assertEqual(markup.inline_keyboard[0][0].callback_data,'application:start:'+item['public_code'])
+        self.assertIn('application:start:'+item['public_code'], (await self.reply_actions(uid=3)).values())
 
     async def test_username_is_refreshed(self):
         await self.message('/start')
@@ -461,7 +521,7 @@ class RegressionTests(unittest.IsolatedAsyncioTestCase):
         from states import ApplicationStates
         oid=await self.new_order();code=(await repo.get_order(oid))['public_code']
         await self.message(code.lower())
-        self.assertEqual(self.session.calls[-1].reply_markup.inline_keyboard[0][0].callback_data,'application:start:'+code)
+        self.assertIn('application:start:'+code, (await self.reply_actions()).values())
         await self.callback('application:start:'+code)
         self.assertEqual(await self.state().get_state(),ApplicationStates.price.state)
         await self.message('500000');await self.message('5 kun');await self.message('Portfolio: example.com <test>')
@@ -645,9 +705,9 @@ class RegressionTests(unittest.IsolatedAsyncioTestCase):
             await repo.get_or_create_user(uid,f'user{uid}','User')
             await create_application(oid,uid,'100','1 kun','A')
         await self.callback(f'apps:order:{oid}:0',uid=2)
-        self.assertEqual(len(self.session.calls[-1].reply_markup.inline_keyboard),8)
+        self.assertEqual(len(self.session.calls[-1].reply_markup.keyboard),9)
         await self.callback(f'apps:order:{oid}:6',uid=2)
-        self.assertEqual(len(self.session.calls[-1].reply_markup.inline_keyboard),4)
+        self.assertEqual(len(self.session.calls[-1].reply_markup.keyboard),5)
 
     async def test_rejected_candidate_cannot_spam_same_order(self):
         from services.applications import create_application,decide_application
