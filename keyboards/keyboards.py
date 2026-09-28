@@ -202,17 +202,12 @@ def order_channel_kb(public_code):
     if config.BOT_USERNAME:
         return InlineKeyboardMarkup(inline_keyboard=[
             [copy_code_button(public_code)],
-            [InlineKeyboardButton(text="📩 Bepul so‘rov yuborish",url=f"https://t.me/{config.BOT_USERNAME}?start=order_{public_code}")],
-            [InlineKeyboardButton(text="⚠️ Shikoyat qilish",url=f"https://t.me/{config.BOT_USERNAME}?start=complaint_{public_code}")]])
-    return ipb([(f"order:apply:{public_code}","📩 Bepul so‘rov yuborish"),
-                (f"complaint:start:{public_code}","⚠️ Shikoyat qilish")])
+            [InlineKeyboardButton(text="📩 Bepul so‘rov yuborish",url=f"https://t.me/{config.BOT_USERNAME}?start=order_{public_code}")]])
+    return ipb([(f"order:apply:{public_code}","📩 Bepul so‘rov yuborish")])
 
 
 def ad_channel_kb(public_code):
-    if config.BOT_USERNAME:
-        return InlineKeyboardMarkup(inline_keyboard=[[
-            InlineKeyboardButton(text="⚠️ Shikoyat qilish",url=f"https://t.me/{config.BOT_USERNAME}?start=complaint_{public_code}")]])
-    return ipb([(f"complaint:start:{public_code}","⚠️ Shikoyat qilish")])
+    return None
 
 
 def developer_order_kb(public_code, already_unlocked=False):
