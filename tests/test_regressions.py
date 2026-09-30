@@ -127,10 +127,10 @@ class RegressionTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_compact_main_menu_and_additional_navigation(self):
         labels = lambda markup: [b.text for row in markup.keyboard for b in row]
-        self.assertEqual(labels(kb.main_menu_rb()), [kb.BTN_AD, kb.BTN_ORDER, kb.BTN_MORE])
-        self.assertEqual(labels(kb.main_menu_rb(True)), [kb.BTN_AD, kb.BTN_ORDER, kb.BTN_MORE, kb.BTN_ADMIN])
+        self.assertEqual(labels(kb.main_menu_rb()), [kb.BTN_AD, kb.BTN_ORDER, '🔎 Ochiq zakazlar', kb.BTN_FIND_ORDER, kb.BTN_MORE])
+        self.assertEqual(labels(kb.main_menu_rb(True)), [kb.BTN_AD, kb.BTN_ORDER, '🔎 Ochiq zakazlar', kb.BTN_FIND_ORDER, kb.BTN_MORE, kb.BTN_ADMIN])
         extra = labels(kb.additional_menu_rb())
-        self.assertEqual(len(extra), 13)
+        self.assertEqual(len(extra), 11)
         self.assertIn(kb.BTN_MY_ADS, extra)
         self.assertIn(kb.BTN_RULES, extra)
         self.assertNotIn(kb.BTN_ADMIN, extra)
