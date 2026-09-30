@@ -8,9 +8,9 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 def button_style(text):
     """Restrained accents: primary actions, positive confirmation and danger."""
-    if text == BTN_AD:
+    if text in (BTN_AD, "🔎 Ochiq zakazlar"):
         return 'success'
-    if text in (BTN_ORDER, BTN_ADMIN):
+    if text in (BTN_ORDER, BTN_ADMIN, BTN_FIND_ORDER):
         return 'primary'
     if text.startswith(('🗑', '❌', '🚫', '➖ Admin')):
         return 'danger'
@@ -62,7 +62,7 @@ BTN_MY_APPLICATIONS = "📨 Yuborgan takliflarim"
 
 
 def main_menu_rb(is_admin: bool = False):
-    rows = [[BTN_AD, BTN_ORDER], [BTN_MORE]]
+    rows = [[BTN_AD, BTN_ORDER], ["🔎 Ochiq zakazlar", BTN_FIND_ORDER], [BTN_MORE]]
     if is_admin:
         rows.append([BTN_ADMIN])
     return multi_reply(rows)
@@ -71,10 +71,9 @@ def main_menu_rb(is_admin: bool = False):
 def additional_menu_rb():
     rows = [
         [BTN_MY_ADS, BTN_MY_ORDERS],
-        ["🔎 Ochiq zakazlar", BTN_MY_APPLICATIONS],
+        [BTN_MY_APPLICATIONS, "🆘 Yordam olish"],
         ["📝 Qoralamalar", "👤 Profilim"],
         ["🔔 Mos zakazlar", "🏆 Bajarilgan ishlar"],
-        [BTN_FIND_ORDER, "🆘 Yordam olish"],
         [BTN_REFERRAL, BTN_RULES],
     ]
     rows.append([BTN_HOME])
